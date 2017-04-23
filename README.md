@@ -1,4 +1,4 @@
-# ${1:EECS-510 Tweepy}
+# EECS-510 Tweepy
 This project extracts tweets from user timeline, search queries, and streaming.   
 
 ## Resource requirements
