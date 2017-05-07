@@ -29,7 +29,7 @@ class StdOutListener(StreamListener):
                           "I raises an error in order to prevent overwriting old file."
                           %(self.tweet_retweet_pair_file_name))
         with open(self.tweet_retweet_pair_file_name, 'w') as f:
-            f.write("Tweet id\tTweet author\tSource id\tSource author\retweet or reply\n")
+            f.write("Tweet id\tTweet author\tSource id\tSource author\tretweet or reply\n")
 
     def on_data(self, data):
         if data is not None:
@@ -63,14 +63,15 @@ def trace(tweet, api, record_file_name):
                              "It has to be a unicode, a string, or tweepy.Status")
     tweet_id = get_tweet_nested_parameter(data, 'id_str')
     tweet_user_id = get_tweet_nested_parameter(data, ['user','id_str'])
-    try:
-        retweet_id = get_retweet_status_id_str(data)  # This is the id of the tweet being retweeted, a.k.a. source tweet.
-    except tweepy.error.TweepError:
-        # Something went wrong. probably the original tweet is deleted or something.
-        pass
+    retweet_id = get_retweet_status_id_str(data)  # This is the id of the tweet being retweeted, a.k.a. source tweet.
+
     if retweet_id is not None:
         retweet_user_id = get_retweet_status_user_id(data)
-        retweet = api.get_status(retweet_id)
+        try:
+            retweet = api.get_status(retweet_id)
+        except tweepy.error.TweepError:
+            # Something went wrong. probably the original tweet is deleted or something.
+            retweet = None
         if not int(tweet_id) >= int(retweet_id):
             raise AssertionError("Something went wrong! "
                                  "Retweet id should always be older a.k.a. larger than the source id.")
@@ -80,14 +81,14 @@ def trace(tweet, api, record_file_name):
                 f.write("%s\t%s\t%s\t%s\t%s\n" % (tweet_id, tweet_user_id, retweet_id, retweet_user_id, "retweet"))
             trace(retweet, api, record_file_name)
 
-    try:
-        reply_id = get_in_reply_to_status_id_str(data)  # This is the id of the tweet being retweeted, a.k.a. source tweet.
-    except tweepy.error.TweepError:
-        # Something went wrong. probably the original tweet is deleted or something.
-        pass
+    reply_id = get_in_reply_to_status_id_str(data)  # This is the id of the tweet being retweeted, a.k.a. source tweet.
     if reply_id is not None:
         reply_user_id = get_in_reply_to_user_id_str(data)
-        source = api.get_status(reply_user_id)
+        try:
+            source = api.get_status(reply_user_id)
+        except tweepy.error.TweepError:
+            # Something went wrong. probably the original tweet is deleted or something.
+            source = None
         if not int(tweet_id) >= int(reply_id):
             raise AssertionError("Something went wrong! "
                                  "reply id should always be older a.k.a. larger than the source id.")
