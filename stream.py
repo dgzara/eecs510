@@ -12,7 +12,8 @@ class StdOutListener(StreamListener):
 
     """
     def on_data(self, data):
-    	print data.rstrip()
+        if data is not None:
+            print data.rstrip()
         return True
 
     def on_error(self, status):

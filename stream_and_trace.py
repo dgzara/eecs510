@@ -32,9 +32,10 @@ class StdOutListener(StreamListener):
             f.write("Tweet id\tTweet author\tSource id\tSource author\retweet or reply\n")
 
     def on_data(self, data):
-        data = data.rstrip()
-        print data
-        trace(data, self.api, self.tweet_retweet_pair_file_name)
+        if data is not None:
+            data = data.rstrip()
+            print data
+            trace(data, self.api, self.tweet_retweet_pair_file_name)
         return True
 
     def on_error(self, status):
